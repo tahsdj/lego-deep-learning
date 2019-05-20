@@ -1,12 +1,17 @@
+
+
+body {
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
 .App {
-  text-align: center;
+  display: inline-flex;
+  width: 100vw;
+  flex-direction: row;
+  align-items: flex-start;
 }
-
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
-}
-
 .App-header {
   background-color: #222;
   height: 150px;
