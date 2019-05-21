@@ -14,20 +14,18 @@ const LegoModule = styled.div`
 
 
 const Lego = (props) => {
-    const text = props.text
     return (
         <LegoModule
             onClick={()=>{
-                if ( text === '+' ) {
-                    const newModuleInfo = {
-                        type: 'conv2d',
-                        msg: 'Conv2D (3x3) x 16'
-                    }
-                    props.createNewLego(newModuleInfo)
+                if ( props.text === '+' ) {
+                    props.dispatch({
+                        type: 'CREATE_MODE',
+                        mode: true
+                    })
                 }
             }}
         >
-            {text}
+            {props.text}
         </LegoModule>
     )
 }

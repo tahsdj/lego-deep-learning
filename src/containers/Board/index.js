@@ -1,10 +1,13 @@
-import React, { Component } from 'react'
+import React, { Component, useReducer, useContext } from 'react'
 import styled from 'styled-components'
 import Lego from "../../components/Lego/"
 import Form from '../../components/Form/'
+import {networkInit, networkReducer} from '../../reducers/network'
+import {ContextStore} from '../../App'
 
 const BoardContainer = styled.div`
   display: inline-flex;
+  position: relative;
   padding: 10px;
   flex-direction: column;
   align-items: center;
@@ -15,50 +18,31 @@ const BoardContainer = styled.div`
 `
 
 
-class Board extends Component {
-  constructor() {
-    super()
-    this.state = {
-      network: [
-        {
-          type: 'input',
-          msg: 'input (MNIST)'
-        }
-      ]
-    }
-    this.createModule = {
-      type: 'create',
-      msg: '+'
-    }
-    this.createNewLego = this.createNewLego.bind(this)
-  }
-  createNewLego(legoInfo) {
-    this.setState({
-      network: [...this.state.network, legoInfo]
-    })
-  }
-  render() {
-    let network = this.state.network.map( (e,i) => (
-      <Lego
-        key={`${i}-lego`}
-        text={e.msg}/>
-    ))
-    // add create module at the last layer
-    const createLego = (
-      <Lego
-        key={'lego-create'}
-        text={this.createModule.msg}
-        createNewLego={this.createNewLego}
-        />
-    )
-    network = [...network, createLego]
+const Board = () => {
+  // const [{layers, createMode}, dispatch] = useReducer(networkReducer, networkInit)
+  const { layers, createMode, dispatch } = useContext(ContextStore)
+
+  let network = layers.map( (e,i) => (
+    <Lego
+      key={`${i}-lego`}
+      text={e.msg}/>
+  ))
+  // add create module at the last layer
+  const createLego = (
+    <Lego
+      key={'lego-create'}
+      text={'+'}
+      dispatch={dispatch}
+      />
+  )
+  network = [...network, createLego]
     return (
       <BoardContainer>
         {network}
-        <Form />
+        { createMode && <Form dispatch={dispatch}/>}
       </BoardContainer>
     )
-  }
+  
 }
 
 export default Board

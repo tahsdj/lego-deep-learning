@@ -1,5 +1,7 @@
-import React, { Component, useState } from 'react'
+import React, { Component, useState, useContext } from 'react'
 import styled from 'styled-components'
+import CloseIcon from '../../icons/close.png'
+import {ContextStore} from '../../App'
 
 const FormContainer = styled.div`
   display: inline-flex;
@@ -16,14 +18,14 @@ const FormContainer = styled.div`
   border: .5px solid gray;
 `
 
-const ButtonsBox = styled.div`
-    display: inline-flex;
-    flex-wrap: wrap;
-    margin-top: 5px;
-    width: calc(100%);
-    flex-direction: row;
+const Close = styled.img`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
 `
-
 const FormData = {
     layers: [
         {
@@ -74,6 +76,7 @@ const FormData = {
 const Form = () => {
     // use sate control from hook
     const [layer, setLayer] = useState(0)
+    const { dispatch } = useContext(ContextStore)
 
     const layerButtons = FormData.layers.map( (e,i) =>(
         <Button
@@ -86,6 +89,10 @@ const Form = () => {
     ))
     return (
         <FormContainer>
+            <Close 
+                src={CloseIcon} 
+                onClick={()=>dispatch({type: "CREATE_MODE", mode: false})}
+                />
             <Row label="Layer">
                 {layerButtons}
             </Row>
@@ -148,13 +155,15 @@ const Button = (props) => {
         <ButtonLayout
             selected={props.selected}
             onClick={()=>{
-                console.log('text: ', props.text)
                 switch(props.type) {
                     case 'layer':
                         props.selectLayer()
                         break
                     case 'kernel':
                         props.selectKernelSize()
+                        break
+                    case 'confirm':
+                        props.confirm()
                         break
                 }
             }}
@@ -184,6 +193,7 @@ const ConvForm = () => {
     const [filters, setFilters] = useState(32)
     const [strideH, setStritedH] = useState(1)
     const [strideW, setStritedW] = useState(1)
+    const { dispatch } = useContext(ContextStore)
 
     const kernelButtons = FormData.layers[1].kernelSize.map( (e,i) =>(
         <Button
@@ -212,8 +222,8 @@ const ConvForm = () => {
                 <Input value={filters} onChange={ e=>setFilters(e.target.value)}/>
             </Row>
             <Row label="Stride">
-                W:<Input value={strideW} onChange={ e=>setStritedW(e.target.value)}/>
-                H:<Input value={strideH} onChange={ e=>setStritedH(e.target.value)}/>
+                <Input placeholder="width" value={strideW} onChange={ e=>setStritedW(e.target.value)}/>
+                <Input placeholder="heigh" value={strideH} onChange={ e=>setStritedH(e.target.value)}/>
             </Row>
             <Row label="Padding">
                 {paddingButtons}
@@ -221,8 +231,24 @@ const ConvForm = () => {
             <Row reverse={true}>
                 <Button
                     key={`confirm`} 
+                    type="confirm"
                     selected={ false}
                     text={'OK'}
+                    confirm={()=>{
+                        console.log('click')
+                        const ksize = FormData.layers[1].kernelSize[kIndex][0]
+                        const layer = {
+                            type: 'conv2d',
+                            msg: `Conv2D (${ksize}x${ksize}) x ${filters}`,
+                            stride: [strideW, strideH],
+                            padding: 'solid'
+                        }
+                        dispatch({
+                            type: 'ADD_LAYER',
+                            layer: layer,
+                            mode: false
+                        })
+                    }}
                     />
             </Row>
         </ConvFormContainer>
