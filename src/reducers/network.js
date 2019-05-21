@@ -18,7 +18,6 @@ export const networkReducer = (state, action) => {
                 createMode: action.mode
             }
         case 'ADD_LAYER':
-            console.log('hi')
             return {
                 ...state,
                 createMode: action.mode,

@@ -99,8 +99,16 @@ const Form = () => {
             {
                 (() => {
                     switch(layer) {
+                        case 0:
+                            return <DenseForm/>
                         case 1:
                             return <ConvForm/>
+                        case 2:
+                            return <MaxPoolingForm />
+                        case 3:
+                            return <ActivationForm />
+                        case 4:
+                            return <DropoutForm />
                         default:
                             return null
                     }
@@ -162,6 +170,12 @@ const Button = (props) => {
                     case 'kernel':
                         props.selectKernelSize()
                         break
+                    case 'padding':
+                        props.selectPadding()
+                        break
+                    case 'activation':
+                        props.selectActivation()
+                        break
                     case 'confirm':
                         props.confirm()
                         break
@@ -173,7 +187,7 @@ const Button = (props) => {
     )
 }
 
-const ConvFormContainer = styled.div`
+const SubFormContainer = styled.div`
     display: inline-flex;
     flex-direction: column;
     align-items: flex-start;
@@ -193,6 +207,7 @@ const ConvForm = () => {
     const [filters, setFilters] = useState(32)
     const [strideH, setStritedH] = useState(1)
     const [strideW, setStritedW] = useState(1)
+    const [paddingIndex, setPaddingIndex] = useState(0)
     const { dispatch } = useContext(ContextStore)
 
     const kernelButtons = FormData.layers[1].kernelSize.map( (e,i) =>(
@@ -208,13 +223,14 @@ const ConvForm = () => {
         <Button
             key={`${i}-conv2d-kernel`}
             type="padding"
-            selected={ i === 0 ? true : false}
+            selected={ i === paddingIndex ? true : false}
             text={e}
+            selectPadding={()=>setPaddingIndex(i)}
             />
     ))
 
     return (
-        <ConvFormContainer>
+        <SubFormContainer>
             <Row label="Kernel size">
                 {kernelButtons}
             </Row>
@@ -235,7 +251,6 @@ const ConvForm = () => {
                     selected={ false}
                     text={'OK'}
                     confirm={()=>{
-                        console.log('click')
                         const ksize = FormData.layers[1].kernelSize[kIndex][0]
                         const layer = {
                             type: 'conv2d',
@@ -251,6 +266,180 @@ const ConvForm = () => {
                     }}
                     />
             </Row>
-        </ConvFormContainer>
+        </SubFormContainer>
     )
 }
+
+
+const DenseForm = () => {
+    const [neurons, setNeurons] = useState(256)
+    const { dispatch } = useContext(ContextStore)
+    return (
+        <SubFormContainer>
+            <Row label="Neurons">
+                <Input value={neurons} onChange={ e=>setNeurons(e.target.value)}/>
+            </Row>
+            <Row reverse={true}>
+                <Button
+                    key={`confirm`} 
+                    type="confirm"
+                    selected={ false}
+                    text={'OK'}
+                    confirm={()=>{
+                        const layer = {
+                            type: 'dense',
+                            msg: `Dense (${neurons})`,
+                            neurons: neurons
+                        }
+                        dispatch({
+                            type: 'ADD_LAYER',
+                            layer: layer,
+                            mode: false
+                        })
+                    }}
+                    />
+            </Row>
+        </SubFormContainer>
+    )
+}
+
+const MaxPoolingForm = () => {
+    const [pIndex, setpIndex] = useState(1)
+    const [strideH, setStritedH] = useState(2)
+    const [strideW, setStritedW] = useState(2)
+    const [paddingIndex, setPaddingIndex] = useState(0)
+    const { dispatch } = useContext(ContextStore)
+
+    const poolButtons = FormData.layers[2].poolSize.map( (e,i) =>(
+        <Button
+            key={`${i}-conv2d-kernel`} 
+            type="kernel"
+            selected={ i === pIndex ? true : false}
+            selectKernelSize={() => setpIndex(i)}
+            text={e}
+            />
+    ))
+    const paddingButtons = FormData.layers[2].padding.map( (e,i) =>(
+        <Button
+            key={`${i}-conv2d-kernel`}
+            type="padding"
+            selected={ i === paddingIndex ? true : false}
+            text={e}
+            selectPadding={()=>setPaddingIndex(i)}
+            />
+    ))
+
+    return (
+        <SubFormContainer>
+            <Row label="Pool size">
+                {poolButtons}
+            </Row>
+            <Row label="Stride">
+                <Input placeholder="width" value={strideW} onChange={ e=>setStritedW(e.target.value)}/>
+                <Input placeholder="heigh" value={strideH} onChange={ e=>setStritedH(e.target.value)}/>
+            </Row>
+            <Row label="Padding">
+                {paddingButtons}
+            </Row>
+            <Row reverse={true}>
+                <Button
+                    key={`confirm`} 
+                    type="confirm"
+                    selected={ false}
+                    text={'OK'}
+                    confirm={()=>{
+                        const psize = FormData.layers[2].poolSize[pIndex][0]
+                        const layer = {
+                            type: 'max-pooling',
+                            msg: `Max Pooling (${psize}x${psize})`,
+                            stride: [strideW, strideH],
+                            padding: 'solid'
+                        }
+                        dispatch({
+                            type: 'ADD_LAYER',
+                            layer: layer,
+                            mode: false
+                        })
+                    }}
+                    />
+            </Row>
+        </SubFormContainer>
+    )
+}
+
+
+const ActivationForm = () => {
+    const [aIndex, setaIndex] = useState(0)
+    const { dispatch } = useContext(ContextStore)
+
+    const activationButtons = FormData.layers[3].activations.map( (e,i) =>(
+        <Button
+            key={`${i}-activation`}
+            type="activation"
+            selected={ i === aIndex ? true : false}
+            text={e}
+            selectActivation={()=>setaIndex(i)}
+            />
+    ))
+    return (
+        <SubFormContainer>
+            <Row label="Activations">
+                {activationButtons}
+            </Row>
+            <Row reverse={true}>
+                <Button
+                    key={`confirm`} 
+                    type="confirm"
+                    selected={ false}
+                    text={'OK'}
+                    confirm={()=>{
+                        const activations = FormData.layers[3].activations
+                        const layer = {
+                            type: 'activation',
+                            msg: `Activation (${activations[aIndex]})`,
+                            activation: activations
+                        }
+                        dispatch({
+                            type: 'ADD_LAYER',
+                            layer: layer,
+                            mode: false
+                        })
+                    }}
+                    />
+            </Row>
+        </SubFormContainer>
+    )
+}
+
+const DropoutForm = () => {
+    const [ratio, setRatio] = useState(0.5)
+    const { dispatch } = useContext(ContextStore)
+    return (
+        <SubFormContainer>
+            <Row label="Ratio">
+                <Input placeholder={"set 0~1"} value={ratio} onChange={ e=>setRatio(e.target.value)}/>
+            </Row>
+            <Row reverse={true}>
+                <Button
+                    key={`confirm`} 
+                    type="confirm"
+                    selected={ false}
+                    text={'OK'}
+                    confirm={()=>{
+                        const layer = {
+                            type: 'dropout',
+                            msg: `Dropout (${ratio})`,
+                            ratio: ratio
+                        }
+                        dispatch({
+                            type: 'ADD_LAYER',
+                            layer: layer,
+                            mode: false
+                        })
+                    }}
+                    />
+            </Row>
+        </SubFormContainer>
+    )
+}
+
