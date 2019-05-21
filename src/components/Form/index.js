@@ -256,7 +256,9 @@ const ConvForm = () => {
                             type: 'conv2d',
                             msg: `Conv2D (${ksize}x${ksize}) x ${filters}`,
                             stride: [strideW, strideH],
-                            padding: 'solid'
+                            filters: filters,
+                            kernelSize: ksize,
+                            padding: FormData.layers[1].padding[paddingIndex]
                         }
                         dispatch({
                             type: 'ADD_LAYER',
@@ -304,7 +306,7 @@ const DenseForm = () => {
 }
 
 const MaxPoolingForm = () => {
-    const [pIndex, setpIndex] = useState(1)
+    const [poolingIndex, setpoolingIndex] = useState(1)
     const [strideH, setStritedH] = useState(2)
     const [strideW, setStritedW] = useState(2)
     const [paddingIndex, setPaddingIndex] = useState(0)
@@ -314,8 +316,8 @@ const MaxPoolingForm = () => {
         <Button
             key={`${i}-conv2d-kernel`} 
             type="kernel"
-            selected={ i === pIndex ? true : false}
-            selectKernelSize={() => setpIndex(i)}
+            selected={ i === poolingIndex ? true : false}
+            selectKernelSize={() => setpoolingIndex(i)}
             text={e}
             />
     ))
@@ -348,12 +350,13 @@ const MaxPoolingForm = () => {
                     selected={ false}
                     text={'OK'}
                     confirm={()=>{
-                        const psize = FormData.layers[2].poolSize[pIndex][0]
+                        const psize = FormData.layers[2].poolSize[poolingIndex][0]
                         const layer = {
                             type: 'max-pooling',
                             msg: `Max Pooling (${psize}x${psize})`,
                             stride: [strideW, strideH],
-                            padding: 'solid'
+                            poolSize: psize,
+                            padding: FormData.layers[2].padding[paddingIndex]
                         }
                         dispatch({
                             type: 'ADD_LAYER',
@@ -397,7 +400,7 @@ const ActivationForm = () => {
                         const layer = {
                             type: 'activation',
                             msg: `Activation (${activations[aIndex]})`,
-                            activation: activations
+                            activation: activations[aIndex]
                         }
                         dispatch({
                             type: 'ADD_LAYER',

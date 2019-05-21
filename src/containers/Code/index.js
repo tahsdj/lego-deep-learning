@@ -1,5 +1,7 @@
-import React, { Component } from 'react';
+import React, { useContext } from 'react';
 import styled from 'styled-components'
+import {ContextStore} from '../../App'
+import { Script } from 'vm';
 
 const CodeContainer = styled.div`
   display: inline-flex;
@@ -14,27 +16,48 @@ const CodeScript = styled.code`
   flex-direction: column;
   padding: 10px;
   color: white;
+  white-space: pre-wrap;
 `
 
-const Line = styled.span`
-    color: white;
-    height: 15px;
-    padding-left: ${props => props.indent? `${props.indent*15}px` : '0px'};
-`
+const firstLine = `def createNetwork():\n\t`
 
-class Code extends Component {
-  render() {
-    return (
-      <CodeContainer>
-        <CodeScript>
-            <Line >def createNet():</Line>
-            {/* <Line ></Line>
-            <Line ></Line> */}
-            <Line indent={1}>return model</Line>
-        </CodeScript>
-      </CodeContainer>
-    )
-  }
+const Code = () => {
+  console.log('code init')
+  const { layers } = useContext(ContextStore)
+  let script = ''
+  layers.forEach((layer, index) =>{
+    switch(layer.type) {
+      case 'input':
+        script += `x = Input(shape=(28, 28, 1))\n\t`
+        break
+      case 'dense':
+        if (index === 1) script += `x = Flatten()(x)\n\t`
+        script += `x = Dense(${layer.neurons})(x)\n\t`
+        break
+      case 'conv2d':
+        script += `x = Conv2D(${layer.filters},(${layer.kernelSize},${layer.kernelSize}),strides=(${layer.stride[0]},${layer.stride[1]}),padding='${layer.padding}')(x)\n\t`
+        break
+      case 'max-pooling':
+        script += `x = MaxPool2D(pool_size=(${layer.poolSize},${layer.poolSize}),strides=(${layer.stride[0]},${layer.stride[1]}),padding='${layer.padding}')(x)\n\t`
+        break
+      case 'activation':
+        script += `x = Activation('${layer.activation}')(x)\n\t`
+        break
+      case 'dropout':
+        script += `x = Dropout(${layer.ratio}(x))`
+        break
+      default:
+        script += ''
+        break
+    }
+  })
+  return (
+    <CodeContainer>
+      <CodeScript>
+          {firstLine + script}
+      </CodeScript>
+    </CodeContainer>
+  )
 }
 
 export default Code
