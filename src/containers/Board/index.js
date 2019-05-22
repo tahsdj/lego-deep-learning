@@ -15,6 +15,8 @@ const BoardContainer = styled.div`
   flex-grow: 3;
   background-color: #ececec;
   min-height: calc(100vh - 20px);
+  max-height: calc(100vh - 20px);
+  overflow-y: auto;
 `
 
 
@@ -25,7 +27,11 @@ const Board = () => {
   let network = layers.map( (e,i) => (
     <Lego
       key={`${i}-lego`}
-      text={e.msg}/>
+      text={e.msg}
+      type={e.type}
+      index={i}
+      dispatch={dispatch}
+      />
   ))
   // add create module at the last layer
   const createLego = (

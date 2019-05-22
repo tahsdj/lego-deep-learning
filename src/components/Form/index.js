@@ -400,7 +400,7 @@ const ActivationForm = () => {
                         const layer = {
                             type: 'activation',
                             msg: `Activation (${activations[aIndex]})`,
-                            activation: activations[aIndex]
+                            activation: activations[aIndex].toLowerCase()
                         }
                         dispatch({
                             type: 'ADD_LAYER',
