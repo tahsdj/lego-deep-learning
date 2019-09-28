@@ -1,69 +1,66 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import styled from 'styled-components'
 import {ContextStore} from '../../App'
-import { Script } from 'vm';
-import { precompile } from 'handlebars';
+// import Prism from 'prismjs'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+// import { dark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 const CodeContainer = styled.div`
   display: inline-flex;
   max-width: 700px;
   width: 700px;
   flex-grow: 2;
-  background-color: black;
+  background-color: white;
+  // background-color: #1d1f21;
   padding: 0 0 30px 0;
   height: calc(100vh - 30px);
-  overflow-y: auto;
+  overflow-y: hidden;
 `
-const CodeScript = styled.code`
-  display: inline-flex;
-  flex-direction: column;
-  padding: 10px;
-  color: white;
-  white-space: pre-wrap;
+const installScript =`
+from keras.datasets import mnist
+from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply
+from keras.layers import BatchNormalization, Activation
+from keras.layers import GlobalAveragePooling2D, MaxPool2D
+from keras.layers.convolutional import UpSampling2D, Conv2D
+from keras.models import Model, load_model
+from keras.optimizers import Adam
+from keras.utils import to_categorical
+from keras.objectives import categorical_crossentropy
+from keras import backend as K
+import numpy as np
+import keras
 `
-const installScripts = [
-  'from keras.datasets import mnist\n',
-  'from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply',
-  'from keras.layers import BatchNormalization, Activation',
-  'from keras.layers import GlobalAveragePooling2D, MaxPool2D',
-  'from keras.layers.convolutional import UpSampling2D, Conv2D',
-  'from keras.models import Model, load_model',
-  'from keras.optimizers import Adam',
-  'from keras.utils import to_categorical',
-  'from keras.objectives import categorical_crossentropy',
-  'from keras import backend as K',
-  'import numpy as np',
-  'import keras'
-]
 
-const dataScripts = [
-  '(x_train, y_train), (x_test, y_test) = mnist.load_data()\n',
-  'y_train = to_categorical(y_train)',
-  'y_test = to_categorical(y_test)',
-  `x_train = x_train.astype('float32') / 255.`,
-  `x_test = x_test.astype('float32') / 255.`
-]
-const firstLine = `def createNetwork():\n\t\n\t`
+const dataScript = `
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+y_train = to_categorical(y_train)
+y_test = to_categorical(y_test)
+x_train = x_train.astype('float32') / 255.
+x_test = x_test.astype('float32') / 255.
+`
+const firstLine = `def createNetwork():\n\t`
 
-const complieScripts = [
-  'model = createNetwork()\n',
-  `model.compile(loss='categorical_crossentropy',
-  \t\toptimizer=Adam(1e-3),
-  \t\tmetrics=['accuracy'])\n`,
-  `batch_size = 128`,
-  `epochs = 20`,
-  `history = model.fit(x_train, y_train,
-    \t\tbatch_size=batch_size,
-    \t\tepochs=epochs,
-    \t\tverbose=1,
-    \t\tvalidation_data=(x_test, y_test))`
-]
+const complieScript = `
+model = createNetwork()
+model.compile(
+  loss='categorical_crossentropy',
+  optimizer=Adam(1e-3)
+  metrics=['accuracy']),
+  batch_size = 128,
+  epochs = 20,
+  history = model.fit(x_train, y_train,
+  batch_size=batch_size,
+  epochs=epochs,
+  verbose=1,
+  validation_data=(x_test, y_test)
+)
+`
+
+const lastLine = '\n\treturn Model(inputs=input, outputs=x)'
 
 const Code = () => {
   const { layers } = useContext(ContextStore)
-  const installation = installScripts.reduce( (pre, val) => pre + `${val}\n`)
-  const dataset = dataScripts.reduce( (pre, val) => pre + `${val}\n`)
-  const complie = complieScripts.reduce( (pre, val) => pre + `${val}\n`)
+
   let script = ''
   let isConvLayer = false
   layers.forEach((layer, index) =>{
@@ -72,7 +69,7 @@ const Code = () => {
       case 'input':
         script += `input = Input(shape=(28, 28))\n\t`
         break
-      case 'dense':
+      case 'Dense':
         if (index === 1) script += `x = Flatten()(${input})\n\t`
         if (isConvLayer) {
           script += `x = Flatten()(x)\n\t`
@@ -80,17 +77,17 @@ const Code = () => {
         }
         script += `x = Dense(${layer.neurons})(x)\n\t`
         break
-      case 'conv2d':
+      case 'Conv2D':
         isConvLayer = true
         script += `x = Conv2D(${layer.filters},(${layer.kernelSize},${layer.kernelSize}),strides=(${layer.stride[0]},${layer.stride[1]}),padding='${layer.padding}')(${input})\n\t`
         break
-      case 'max-pooling':
+      case 'Max pooling':
         script += `x = MaxPool2D(pool_size=(${layer.poolSize},${layer.poolSize}),strides=(${layer.stride[0]},${layer.stride[1]}),padding='${layer.padding}')(${input})\n\t`
         break
-      case 'activation':
+      case 'Activation':
         script += `x = Activation('${layer.activation}')(${input})\n\t`
         break
-      case 'dropout':
+      case 'Dropout':
         script += `x = Dropout(${layer.ratio})(${input})\n\t`
         break
       default:
@@ -98,12 +95,12 @@ const Code = () => {
         break
     }
   })
-  const lastLine = '\n\treturn Model(inputs=input, outputs=x)'
+
   return (
     <CodeContainer>
-      <CodeScript>
-          {installation + '\n\n' + dataset + '\n\n' + firstLine + script + lastLine + '\n\n' + complie + '\n\n'}
-      </CodeScript>
+      <SyntaxHighlighter language="python" customStyle={{"margin": '0',"width": "calc(100% - 2em)","height": "calc(100vh - 2em)", "font-size": '0.8em'}}>
+          {installScript + '\n' + dataScript + '\n' + firstLine + script + lastLine + '\n' + complieScript + '\n\n'}
+      </SyntaxHighlighter>
     </CodeContainer>
   )
 }
