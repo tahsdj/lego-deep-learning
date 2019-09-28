@@ -23,31 +23,25 @@ const BoardContainer = styled.div`
 const Board = () => {
   // const [{layers, createMode}, dispatch] = useReducer(networkReducer, networkInit)
   const { layers, createMode, dispatch } = useContext(ContextStore)
-
-  let network = layers.map( (e,i) => (
-    <Lego
-      key={`${i}-lego`}
-      text={e.msg}
-      type={e.type}
-      index={i}
-      dispatch={dispatch}
-      />
-  ))
-  // add create module at the last layer
-  const createLego = (
-    <Lego
-      key={'lego-create'}
-      text={'+'}
-      dispatch={dispatch}
-      />
+  return (
+    <BoardContainer>
+      {layers.map( (e,i) => (
+        <Lego
+          key={`${i}-lego`}
+          text={e.msg}
+          type={e.type}
+          index={i}
+          dispatch={dispatch}
+          />
+      ))}
+      <Lego
+        key={'lego-create'}
+        text={'+'}
+        dispatch={dispatch}
+        />
+      { createMode && <Form dispatch={dispatch}/>}
+    </BoardContainer>
   )
-  network = [...network, createLego]
-    return (
-      <BoardContainer>
-        {network}
-        { createMode && <Form dispatch={dispatch}/>}
-      </BoardContainer>
-    )
   
 }
 

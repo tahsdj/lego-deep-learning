@@ -29,18 +29,21 @@ const Lego = (props) => {
     return (
         <LegoModule
             onClick={()=>{
-                if ( props.text === '+' ) {
-                    props.dispatch({
-                        type: 'CREATE_MODE',
-                        mode: true
-                    })
-                }
+                props.dispatch({
+                    type: 'CREATE_MODE',
+                    mode: true,
+                    edit: props.text === '+' ? false : true,
+                    currentIndex: props.index
+                })
             }}
         >
             {props.text !== '+' && props.type !== 'input' && (
                 <RemoveIcon 
                     src={CloseIcon}
-                    onClick={()=>props.dispatch({type: 'REMOVE_LAYER', index: props.index})}
+                    onClick={e=>{
+                        e.stopPropagation()
+                        props.dispatch({type: 'REMOVE_LAYER', index: props.index})
+                    }}
                     />
                 )
             }

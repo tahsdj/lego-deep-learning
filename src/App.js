@@ -4,17 +4,14 @@ import Code from './containers/Code/'
 import {networkInit, networkReducer} from './reducers/network'
 import './App.css';
 
-export const ContextStore = React.createContext({
-    layers: [],
-    createMode: false
-})
+export const ContextStore = React.createContext()
 
 const App = () => {
-  const [network, dispatch] = useReducer(networkReducer, networkInit)
+  const [networkContext, dispatch] = useReducer(networkReducer, networkInit)
   return (
     <ContextStore.Provider 
       value={{
-        ...network,
+        ...networkContext,
         dispatch
       }}>
       <div className="App">
