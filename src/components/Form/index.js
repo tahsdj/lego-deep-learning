@@ -88,7 +88,9 @@ const Form = () => {
     const {edit, currentIndex, layers, dispatch } = useContext(ContextStore)
     
     const currentLayer = layers[currentIndex]
+    
     const [layer, setLayer] = useState(edit?dict[currentLayer.type]:0)
+    const [hasChanged, setChanged] = useState(false)
     
     const layerButtons = FormData.layers.map( (e,i) =>(
         <Button
@@ -96,9 +98,13 @@ const Form = () => {
             type="layer"
             selected={ i === layer ? true : false}
             text={e.type}
-            clickCallback={()=>setLayer(i)}
+            clickCallback={()=>{
+                setLayer(i)
+                setChanged(true)
+            }}
             />
     ))
+    const showOriginalData = edit && !hasChanged
     return (
         <FormContainer>
             <Close 
@@ -112,9 +118,9 @@ const Form = () => {
                 (() => {
                     switch(layer) {
                         case 0:
-                            return edit? <DenseForm n={currentLayer.nuerons}/> : <DenseForm />
+                            return showOriginalData?<DenseForm n={currentLayer.nuerons}/> : <DenseForm />
                         case 1:
-                            return edit? 
+                            return showOriginalData? 
                                 <ConvForm 
                                     kSize={currentLayer.kernelSize} 
                                     _filters={currentLayer.filters} 
@@ -122,17 +128,17 @@ const Form = () => {
                                     _strideH={currentLayer.stride[1]} 
                                     padding={currentLayer.padding} /> : <ConvForm />
                         case 2:
-                            return edit ?
+                            return showOriginalData ?
                                 <MaxPoolingForm 
                                     poolingSize={currentLayer.poolingSize} 
                                     _strideW={currentLayer.stride[0]} 
                                     _strideH={currentLayer.stride[1]} 
                                     padding={currentLayer.padding} /> : <MaxPoolingForm />
                         case 3:
-                            return edit ?
+                            return showOriginalData ?
                                 <ActivationForm type={currentLayer.activation} /> : <ActivationForm />
                         case 4:
-                            return edit ?
+                            return showOriginalData ?
                                 <DropoutForm _ratio={currentLayer.ratio} /> : <DropoutForm />
                         default:
                             return null
