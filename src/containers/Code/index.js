@@ -1,21 +1,45 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components'
 import {ContextStore} from '../../App'
-// import Prism from 'prismjs'
+import Copy from '../../icons/copy.png'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 // import { dark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 const CodeContainer = styled.div`
   display: inline-flex;
+  position: relative;
   max-width: 700px;
   width: 700px;
   flex-grow: 2;
   background-color: white;
-  // background-color: #1d1f21;
   padding: 0 0 30px 0;
   height: calc(100vh - 30px);
   overflow-y: hidden;
 `
+
+const CopyMessage = styled.div`
+  position: absolute;
+  bottom: 17px;
+  left: 50%;
+  transform: translate(-50%,0);
+  padding: 5px 10px;
+  border-radius: 10px;
+  background-color: black;
+  color: white;
+  font-size: 0.8em;
+`
+
+const CopyIcon = styled.img`
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  width: 23px;
+  height: 23px;
+  cursor: pointer;
+  padding: 5px;
+  background-color: rgba(245,242,240,1);
+`
+
 const installScript =`
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply
@@ -58,8 +82,8 @@ model.compile(
 
 const lastLine = '\n\treturn Model(inputs=input, outputs=x)'
 
-const Code = () => {
-  const { layers } = useContext(ContextStore)
+const Code = React.memo(({layers}) => {
+  const [copyStatus, setCopyStatus] = useState(false)
 
   let script = ''
   let isConvLayer = false
@@ -95,14 +119,28 @@ const Code = () => {
         break
     }
   })
-
+  const copyToClipboard = (text) => {
+    const textArea = document.querySelector('#clipboard-area')
+    textArea.value = text
+    textArea.focus()
+    textArea.select()
+    const copyStatus = document.execCommand('copy')
+    if ( copyStatus ) {
+      setCopyStatus(true)
+      setTimeout(()=>setCopyStatus(false),1500)
+    }
+  }
+  const wholeScript = installScript + '\n' + dataScript + '\n' + firstLine + script + lastLine + '\n' + complieScript + '\n\n'
   return (
     <CodeContainer>
-      <SyntaxHighlighter language="python" customStyle={{"margin": '0',"width": "calc(100% - 2em)","height": "calc(100vh - 2em)", "font-size": '0.8em'}}>
-          {installScript + '\n' + dataScript + '\n' + firstLine + script + lastLine + '\n' + complieScript + '\n\n'}
+      <textarea id="clipboard-area" style={{position: 'absolute', opacity: 0, zIndex: -999}}></textarea>
+      <SyntaxHighlighter language="python" customStyle={{"margin": '0',"width": "calc(100% - 2em)","height": "calc(100vh - 2em)", "fontSize": '0.8em'}}>
+          {wholeScript}
       </SyntaxHighlighter>
+      <CopyIcon src={Copy} onClick={()=>copyToClipboard(wholeScript)}/>
+      {copyStatus && <CopyMessage>Copy to clipboard</CopyMessage>}
     </CodeContainer>
   )
-}
+})
 
 export default Code

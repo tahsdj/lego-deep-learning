@@ -16,7 +16,7 @@ const App = () => {
       }}>
       <div className="App">
         <Board />
-        <Code />
+        <Code layers={networkContext.layers}/>
       </div>
     </ContextStore.Provider>
   )

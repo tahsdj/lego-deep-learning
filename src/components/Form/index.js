@@ -15,7 +15,9 @@ const FormContainer = styled.div`
   flex-direction: column;
   align-items: flex-start;
   padding: 10px;
-  border: .5px solid gray;
+  border: .5px solid rgba(0,0,0,.16);
+  z-index: 9999;
+  box-shadow: 1px 1px 3px rgba(0,0,0,.16);
 `
 
 const Close = styled.img`
